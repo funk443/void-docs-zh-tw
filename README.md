@@ -1,19 +1,17 @@
-# Void Docs
+# Void 手冊
 
-Welcome to the Void documentation. This repository contains the source data
-behind <https://docs.voidlinux.org/>. Contributing to this repository follows
-the same protocol as the packages tree. For details, please read
-[CONTRIBUTING](./CONTRIBUTING.md).
+歡迎來到 Void Linux 的手冊。這個 Repo 存放了
+<https://docs.voidlinux.org/> 手冊的繁體中文版。如果想為這個 Repo 出一
+份心力，請參考 [CONTRIBUTING](./CONTRIBUTING.md) 。
 
 ## Building
 
-The [res/build.sh](./res/build.sh) script builds HTML, roff and PDF versions of
-the Void documentation and the `void-docs.1` man page. It requires the following
-Void packages:
+[res/build.sh](./res/build.sh) 腳本會產生 HTML 、 roff 和 PDF版的 Void
+文件以及 `void-docs.1` 手冊頁。執行它需要下列程式：
 
 - `mdBook`
 - `findutils`
-- `lowdown` (version 0.8.1 or greater)
+- `lowdown` （0.8.1 或更高的版本）
 - `texlive`
 - `perl`
 - `perl-File-Which`
@@ -21,6 +19,5 @@ Void packages:
 - `librsvg-utils`
 - `python3-md2gemini`
 
-In order to build and install these files, set the `PREFIX` and `DESTDIR`
-environment variables to appropriate values and run `res/build.sh` followed by
-`res/install.sh`.
+要產生並安裝這些檔案，設定好 `PREFIX` 和 `DESTDIR` 這兩個環境變數，並
+依序執行 `res/build.sh`及 `res/install.sh` 。
