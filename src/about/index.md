@@ -1,35 +1,27 @@
-# About
+# 關於
 
-Welcome to the Void Handbook! Please be sure to read the "[About This
-Handbook](./about-this-handbook.md)" section to learn how to use this
-documentation effectively. A local copy of this handbook, in several formats,
-can be [installed](../xbps/index.md) via the `void-docs` package and accessed
-with the [void-docs(1)](https://man.voidlinux.org/void-docs.1) utility.
+歡迎來到 Void 指南！請先閱讀「[關於本指南](./about-this-handbook.md)」
+以了解如何有效地使用本手冊。本指南的本地存檔可以透過[安
+裝](../xbps/index.md) `void-docs` 套件後以
+[void-docs(1)](https://man.voidlinux.org/void-docs.1) 來進行存取。
 
-Void is an independent, [rolling
-release](https://en.wikipedia.org/wiki/Rolling_release) Linux distribution,
-developed from scratch rather than as a fork, with a focus on stability over
-[bleeding-edge](https://en.wikipedia.org/wiki/Bleeding_edge_technology). In
-addition, there are several features that make Void unique:
+Void 是一個獨立的，[滾動式發
+行](https://en.wikipedia.org/wiki/Rolling_release) 的 Linux 發行版。它
+並不是某個發行版的分支，而是從頭開發的，並且更注重穩定性，而非[最新技
+術](https://en.wikipedia.org/wiki/Bleeding_edge_technology)。此外，還
+有一些特點讓 Void 十分獨特：
 
-- The [XBPS](https://github.com/void-linux/xbps) package manager, which is
-   extremely fast, developed in-house, and performs checks when installing
-   updates to ensure that libraries are not changed to incompatible versions
-   which can break dependencies.
-- The [musl libc](https://musl.libc.org/), which focuses on standards compliance
-   and correctness, has first class support. This allows us to build certain
-   components for musl systems statically, which would not be practical on glibc
-   systems.
-- [runit](../config/services/index.md) is used for
-   [init(8)](https://man.voidlinux.org/init.8) and service supervision. This
-   allows Void to support musl as a second libc choice, which would not be
-   possible with [systemd](https://www.freedesktop.org/wiki/Software/systemd/).
-   A side effect of this decision is a core system with clean and efficient
-   operation, and a small code base.
+- [XBPS](https://github.com/void-linux/xbps) 套件管理員，它是一種速度
+  飛快，由 Void 內部開發，並在更新套件時檢查更新不會破壞其他套件的相依
+  性。
+- [musl libc](https://musl.libc.org/)，注重於遵守標準及正確性，擁有一
+  流的支援。這使我們能在 musl 系統上建構在 glibc 上無法構建的靜態組件。
+- [runit](../config/services/index.md) 用於
+  [init(8)](https://man.voidlinux.org/init.8) 及服務監控。runit 讓我們
+  有辦法使用 musl 作為 libc，而這在
+  [systemd](https://www.freedesktop.org/wiki/Software/systemd/) 上是不
+  可能的。使用 runit 還使 Void 的核心系統更簡潔、高效。
 
-Void is developed in the spare time of a handful of developers, and is generally
-considered stable enough for daily use. We do this for fun and hope that our
-work will be useful to others.
+Void 的穩定性通常足以應付日常使用。 Void 是由一小群開發者以閒暇時間開發的，我們以此為樂，並希望我們的努力可以幫助到其他人。
 
-The name "Void" comes from the C literal `void`. It was chosen rather randomly,
-and is void of any meaning.
+「Void」 這個名字是從 C 語言中的 `void` 關鍵字而來，沒有什麼特別的含意。
