@@ -11,7 +11,7 @@
 
 ## 閱讀手冊頁
 
-本指南並沒有大量的複製及貼上的設定指示，但我們有提供到 [man
+本指南並沒有大量可供複製貼上的指令，但我們有提供到 [man
 pages](https://man.voidlinux.org) 的連結。
 
 要學習如何使用 [man(1)](https://man.voidlinux.org/man.1) 手冊頁閱讀器，
