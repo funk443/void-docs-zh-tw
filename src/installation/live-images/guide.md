@@ -1,141 +1,125 @@
-# Installation Guide
+# 安裝指南
 
-Once you have [downloaded](../index.md#downloading-installation-media) a Void
-image to install and [prepared](./prep.md) your install media, you are ready to
-install Void Linux.
+當你[下載好](../index.md#downloading-installation-media)一個 Void 映像
+檔並[準備好](./prep.md)安裝媒介後，你就可以開始安裝 Void Linux 了。
 
-Before you begin installation, you should determine whether your machine boots
-using BIOS or UEFI. This will affect how you plan partitions. See [Partitioning
-Notes](./partitions.md) for more detail.
+在你開始安裝前，你應該先確認你要安裝的機器是使用 BIOS 還是 UEFI 方式開
+機。這會影響到你如何做磁碟分區，詳情請參考[分區說明](./partitions.md)。
 
-The following features are not supported by the installer script:
+安裝腳本不支援下列功能：
 
 - [LVM](https://en.wikipedia.org/wiki/Logical_volume_management)
 - [LUKS](https://en.wikipedia.org/wiki/Linux_Unified_Key_Setup)
 - [ZFS](https://en.wikipedia.org/wiki/ZFS)
 
-## Booting
+## 開機
 
-Boot your machine from the install media you created. If you have enough RAM,
-there is an option on the boot screen to load the entire image into ram, which
-will take some time but speed up the rest of the install process.
+使用你的安裝媒介開機。如果你的 RAM 夠大，在開機選單時，會有一個選項讓
+你可以將整個映像檔複製進你的記憶體裡。這會需要點時間，不過會讓後面的安
+裝過程變更快。
 
-Once the live image has booted, log in as `root` with password `voidlinux` and
-run:
+當以映像檔開機後，以 `root` 登入，密碼是 `voidlinux`，然後執行下列指令：
 
 ```
 # void-installer
 ```
 
-The following sections will detail each screen of the installer.
+以下內容會詳細解釋安裝器中的每個過程。
 
-## Keyboard
+## 鍵盤（Keyboard）
 
-Select the keymap for your keyboard; standard "qwerty" keyboards will generally
-use the "us" keymap.
+選擇你想要的鍵盤配置，標準的「qwerty」鍵盤通常使用「us」配置。
 
-## Network
+## 網路（Network）
 
-Select your primary network interface. If you do not choose to use DHCP, you
-will be prompted to provide an IP address, gateway, and DNS servers.
+選擇你的主要網路介面。如果你選擇不使用 DHCP，你會被要求輸入 IP 地址、
+閘和 DNS 伺服器。
 
-If you choose a wireless network interface, you will be prompted to provide the
-SSID, encryption type (`wpa` or `wep`), and password. If `void-installer` fails
-to connect to your network, you may need to exit the installer and configure it
-manually using [wpa_supplicant](../../config/network/wpa_supplicant.md) and
-[dhcpcd](../../config/network/index.md#dhcpcd) before continuing.
+如果你選擇了一個無線網路介面，你需要輸入網路的 SSID、加密方法（`wpa`
+或 `wep`）還有密碼。如果 `void-installer` 沒辦法連接到網路，你需要先退
+出安裝器，並透過
+[wpa_supplicant](../../config/network/wpa_supplicant.md) 和
+[dhcpcd](../../config/network/index.md#dhcpcd) 手動設定好網路再繼續。
 
-## Source
+## 來源（Source）
 
-To install packages provided on the install image, select `Local`. Otherwise,
-you may select `Network` to download the latest packages from the Void
-repository.
+如果要從映像檔中直接安裝套件，請選擇 `Local`。你還可以選擇 `Network`
+來從 Void 的套件庫下載最新的套件。
 
-> **Warning:** If you are installing the desktop environment from the xfce
-> image, you MUST choose `Local` for the source!
+> **警告：**如果你想要安裝 xfce 映像的桌面環境，你**必須**選擇 `Local`。
 
-## Hostname
+## 主機名稱（Hostname）
 
-Select a hostname for your computer (that is all lowercase, with no spaces.)
+為你的電腦選個主機名稱（需為全部小寫，並無空格）。
 
-## Locale
+## 語系（Locale）
 
-Select your default locale settings. This option is for glibc only, as musl does
-not currently support locales.
+選擇你想要的預設語系。這個選項只有在 glibc 下有用，因為 musl 目前並不
+支援語系。
 
-## Timezone
+## 時區（Timezone）
 
-Select your timezone based on standard timezone options.
+選擇你的時區。
 
-## Root password
+## Root 密碼（Root password）
 
-Enter and confirm your `root` password for the new installation. The password
-will not be shown on screen.
+輸入並確認你新系統的 `root` 密碼。這個密碼不會被顯示在螢幕上。
 
-## User account
+## 使用者帳戶（User account）
 
-Choose a login (default `void`) and a descriptive name for that login. Then
-enter and confirm the password for the new user. You will then be prompted to
-verify the groups for this new user. They are added to the `wheel` group by
-default and will have `sudo` access. Default groups and their descriptions are
-listed [here](../../config/users-and-groups.html#default-groups).
+選擇一個登入帳戶（預設是 `void`），並為它取個好名字。接著為這個帳戶設
+定一個密碼。然後你會需要為這個新使用者選擇它所在之群組。它預設會在
+`wheel` 裡，所以可以使用 `sudo` 。有關預設的群組請參閱[這
+裡](../../config/users-and-groups.html#default-groups)。
 
-Login names have some restrictions, as described in
-[useradd(8)](https://man.voidlinux.org/useradd.8#CAVEATS).
+登入帳戶的名稱會有些限制，請參閱
+[useradd(8)](https://man.voidlinux.org/useradd.8#CAVEATS)。
 
-## Bootloader
+## 引導程式（Bootloader）
 
-Select the disk to install a bootloader on when Void is installed. You may
-select `none` to skip this step and install a bootloader manually after
-completing the installation process. If installing a bootloader, you will also
-be asked whether or not you want a graphical terminal for the GRUB menu.
+選擇一個磁碟來安裝引導程式，它會在安裝 Void 時被安裝。你也可以選擇
+`none` 來跳過這步，然後在安裝完 Void 後自行安裝引導程式。如果你選擇安
+裝，安裝器會詢問你是否要為 GRUB 選單安裝一個圖形終端。
 
-## Partition
+## 磁碟分區（Partition）
 
-Next, you will need to partition your disks. Void does not provide a preset
-partition scheme, so you will need to create your partitions manually with
-[cfdisk(8)](https://man.voidlinux.org/cfdisk.8). You will be prompted with a
-list of disks. Select the disk you want to partition and the installer will
-launch `cfdisk` for that disk. Remember you must write the partition table to
-the drive before you exit the partition editor.
+接下來，你需要為你的磁碟分區。Void 並沒有提供預設的分區方案，所以你會
+需要自行使用 [cfdisk(8)](https://man.voidlinux.org/cfdisk.8) 來分區。
+你需要選擇在哪個磁碟上進行分區，然後安裝器會啟動 `cfdisk`。別忘了在你
+離開分區編輯器前寫入分割表。
 
-If using UEFI, it is recommended you select GPT for the partition table and
-create a partition (typically between 200MB-1GB) of type `EFI System`, which
-will be mounted at `/boot/efi`.
+如果你使用 UEFI，我們建議你使用 GPT 作為分割表，並建立一個 `EFI
+System` 類型的分區（通常大小在 200MB-1GB），這個分區會被掛載在
+`/boot/efi`。
 
-If using BIOS, it is recommended you select MBR for the partition table.
-Advanced users may use GPT but will need to [create a special BIOS
-partition](./partitions.md#bios-system-notes) for GRUB to boot.
+如果你使用 BIOS，我們建議你使用 MBR 作為分割表。進階的使用者也可以使用
+GPT，不過你需要[為 GRUB 建立一個特殊的 BIOS 分
+區](./partitions.md#bios-system-notes)才能開機。
 
-See the [Partitioning Notes](./partitions.md) for more details about
-partitioning your disk.
+更多詳情請參閱[分區說明](./partitions.md)。
 
-## Filesystems
+## 檔案系統（Filesystems）
 
-Create the filesystems for each partition you have created. For each partition
-you will be prompted to choose a filesystem type, whether you want to create a
-new filesystem on the partition, and a mount point, if applicable. When you are
-finished, select `Done` to return to the main menu.
+為你建立的每個分區創立檔案系統。你需要為每個分區選擇一種檔案系統、是否
+創建一個新的檔案系統及一個掛載點。完成後選擇 `Done` 回到主選單。
 
-If using UEFI, create a `vfat` filesystem and mount it at `/boot/efi`.
+如果你使用 UEFI，你需要建立一個 `vfat` 檔案系統，並將它掛載在
+`/boot/efi`。
 
-## Review settings
+## 檢查設定（Review settings）
 
-It is a good idea to review your settings before proceeding. Use the right arrow
-key to select the settings button and hit `<enter>`. All your selections will be
-shown for review.
+你最好在繼續前再審視一次你的設定。使用右方向鍵選擇設定按鈕並按下
+`<enter>`。你剛剛的所有選擇都會顯示在該頁面。
 
-## Install
+## 安裝（Install）
 
-Selecting `Install` from the menu will start the installer. The installer will
-create all the filesystems selected, and install the base system packages. It
-will then generate an initramfs and install a GRUB2 bootloader to the bootable
-partition.
+選擇 `Install` 會開始安裝器。它會建立你所選的所有檔案系統、安裝基本系
+統套件、產生 initramfs 並將 GRUB2 安裝到開機分區上。
 
-These steps will all run automatically, and after the installation is completed
-successfully, you can reboot into your new Void Linux install!
+以上流程應該都會自動執行。它們結束後你就可以重新開機進到你的新 Void
+Linux 系統了！
 
-## Post installation
+## 在安裝之後
 
-After booting into your Void installation for the first time, [perform a system
-update](../../xbps/index.md#updating).
+在進到你新安裝的 Void 系統後，你應該[更新系
+統](../../xbps/index.md#updating)。
