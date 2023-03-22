@@ -1,15 +1,15 @@
-# Prepare Installation Media
+# 準備安裝媒介
 
-After [downloading a live image](../index.md#downloading-installation-media), it
-must be written to bootable media, such as a USB drive, SD card, or CD/DVD.
+在[下載好安裝映像檔後](../index.md#下載安裝映像)，你需要把它寫入到某種
+可以用來開機的媒介，如 USB 隨身碟、SD 卡或 CD/DVD。
 
-## Create a bootable USB drive or SD card on Linux
+## 在 Linux 上創造可開機的 USB 隨身碟或 SD 卡
 
-### Identify the Device
+### 確認設備
 
-Before writing the image, identify the device you'll write it to. You can do
-this using [fdisk(8)](https://man.voidlinux.org/man8/fdisk.8). After connecting
-the storage device, identify the device path by running:
+在寫入映像前，你需要辨識你要寫入的設備。你可以透過
+[fdisk(8)](https://man.voidlinux.org/man8/fdisk.8) 來完成這件事。在連
+接上你的儲存設備後，透過以下指令取得裝置位置：
 
 ```
 # fdisk -l
@@ -20,27 +20,27 @@ Sector size (logical/physical): 512 bytes / 512 bytes
 I/O size (minimum/optimal): 512 bytes / 512 bytes
 ```
 
-In the example above, the output shows the USB device as `/dev/sda`. On Linux,
-the path to the device will typically be in the form of `/dev/sdX` (where X is a
-letter) for USB devices, `/dev/mmcblkX` for SD cards, or other variations
-depending on the device. You can use the model and size (`7.5GiB` above, after
-the path) to identify the device if you're not sure what path it will have.
+在上面這範例中，我們可以看到我們所插入的 USB 隨身碟是 `/dev/sda`。在
+Linux 上，一個 USB 裝置的位址通常會長得像 `/dev/sdX`（X 是一個英文字
+母），SD 卡會長得像 `/dev/mmcblkX`，其他裝置也會有對應的名字。當你不確
+定你的裝置是哪個時，你可以使用裝置型號和其空間大小（以上面的範例來說，
+此裝置的大小是 `7.5GiB`）來判斷某個裝置是不是你想要的。
 
-Once you've identified the device you'll use, ensure it's **not** mounted by
-unmounting it with [umount(8)](https://man.voidlinux.org/man8/umount.8):
+當你辨別出你要用的裝置時，使用
+[umount(8)](https://man.voidlinux.org/man8/umount.8) 來缷載它，以確保
+它 **沒有** 被掛載：
 
 ```
 # umount /dev/sdX
 umount: /dev/sdX: not mounted.
 ```
 
-### Write the live image
+### 寫入 live 映像檔
 
-The [dd(1)](https://man.voidlinux.org/man1/dd.1) command can be used to copy a
-live image to a storage device. Using `dd`, write the live image to the device:
+可以使用 [dd(1)](https://man.voidlinux.org/man1/dd.1) 指令來將一個映像
+檔寫入其他裝置：
 
-**Warning**: this will destroy any data currently on the referenced device.
-Exercise caution.
+**警告**：這會把該裝置上所有的檔案摧毀。
 
 ```
 # dd bs=4M if=/path/to/void-live-ARCH-DATE-VARIANT.iso of=/dev/sdX
@@ -49,28 +49,26 @@ Exercise caution.
 377487360 bytes (377 MB, 360 MiB) copied, 0.461442 s, 818 MB/s
 ```
 
-`dd` won't print anything until it's completed (or if it failed), so, depending
-on the device, this can take a few minutes or longer. You can enable printing by
-adding `status=progress` to the command if using GNU coreutils `dd`.
+`dd` 指令在直到它完成（或失敗）前不會輸出認何東西。而隨著裝置的不同，
+這個過程可以花費數分鐘或以上。如果你使用的是 GNU 核心工具組的 `dd` 的
+話，你可以加入 `status=progress` 參數來啟用狀態輸出。
 
-Finally, ensure all data is flushed before disconnecting the device:
+最後，在將裝置退出前，確認所有資料都已經完全寫入：
 
 ```
 $ sync
 ```
 
-The number of records, amount copied, and rates will all vary depending on the
-device and the live image you chose.
+你使用的裝置和所選的 live 映像檔會影響到寫入的數量、複製的次數和速率
 
-## Burning to a CD or DVD
+## 燒錄至 CD 或 DVD
 
-Any disk burning application should be capable of writing the `.iso` file to a
-CD or DVD. The following free software applications are available
-(cross-platform support may vary):
+任何一個光碟燒錄軟體都應該有辦法將 `.iso` 檔寫入 CD 或 DVD 中。以下自
+由軟體可以做到這些事（跨平台的支援可能不盡相同）：
 
 - [Brasero](https://wiki.gnome.org/Apps/Brasero/)
 - [K3B](https://userbase.kde.org/K3b)
 - [Xfburn](https://docs.xfce.org/apps/xfburn/start)
 
-It should be noted that, with a CD or DVD, live sessions will be less responsive
-than with a USB stick or hard drive.
+請注意，如果使用 CD 或 DVD，live 互動的速度會比使用一個 USB 隨身碟或硬
+碟還慢。
