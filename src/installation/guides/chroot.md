@@ -1,70 +1,66 @@
-# Installation via chroot (x86/x86_64/aarch64)
+# 通過 chroot 安裝（x86/x86_64/aarch64）
 
-This guide details the process of manually installing Void via a chroot on an
-x86, x86_64 or aarch64 architecture. It is assumed that you have a familiarity
-with Linux, but not necessarily with installing a Linux system via a chroot.
-This guide can be used to create a "typical" setup, using a single partition on
-a single SATA/IDE/USB disk. Each step may be modified to create less typical
-setups, such as [full disk encryption](./fde.md).
+本指南詳細說明了在 x86、x86\_64 和 aarch64 架構上透過 chroot 安裝 Void
+的過程。使用本指南不需要使用 chroot 安裝 Linux 的經驗，不過您必須對
+Linux 有一定的認識。照著本說明可以創建一個「典型」的系統，使用單一個
+SATA/IDE/USB 裝置上的單一個分區。每個步驟都可以按需調整，比如[開啟硬碟
+加密](./fde.md)。
 
-Void provides two options for bootstrapping the new installation. The **XBPS
-method** uses the [XBPS Package Manager](../../xbps/index.md) running on a host
-operating system to install the base system. The **ROOTFS method** installs the
-base system by unpacking a ROOTFS tarball.
+Void 提供兩種安裝方法：**XBPS 方法**使用一個在宿主系統上的 [XBPS 套件
+管理員](../../xbps/index.md)來安裝基本系統。**ROOTFS 方法**透過解壓縮
+ROOTFS 壓縮檔來安裝基本系統。
 
-The **XBPS method** requires that the host operating system have XBPS installed.
-This may be an existing installation of Void, an official [live
-image](../live-images/prep.md), or any Linux installation running a [statically
-linked XBPS](../../xbps/troubleshooting/static.md).
+**XBPS 方法**需要一個安裝有 XBPS 的宿主系統。這可以是一個已經安裝好的
+Void、官方的 [live 鏡像](../live-images/prep.md)或任何裝有[靜態連結
+XBPS](../../xbps/troubleshooting/static.md)的 Linux 系統。
 
-The **ROOTFS method** requires only a host operating system that can enter a
-Linux chroot and that has both [tar(1)](https://man.voidlinux.org/tar.1) and
-[xz(1)](https://man.voidlinux.org/xz.1) installed. This method may be preferable
-if you wish to install Void using a different Linux distribution.
+**ROOTFS 方法**只要求宿主系統可以進入 Linux chrrot，並安裝有
+[tar(1)](https://man.voidlinux.org/tar.1) 和
+[xz(1)](https://man.voidlinux.org/xz.1)。如果你想從別的 Linux 發行版安
+裝 Void，我們推薦這個方法。
 
-## Prepare Filesystems
+## 準備檔案系統
 
-[Partition your disks](../live-images/partitions.md) and format them using
-[mke2fs(8)](https://man.voidlinux.org/mke2fs.8),
-[mkfs.xfs(8)](https://man.voidlinux.org/mkfs.xfs.8),
-[mkfs.btrfs(8)](https://man.voidlinux.org/mkfs.btrfs.8) or whatever tools are
-necessary for your filesystem(s) of choice.
+[將你的硬碟分區](../live-images/partitions.md)，並使用
+[mke2fs(8)](https://man.voidlinux.org/mke2fs.8)、
+[mkfs.xfs(8)](https://man.voidlinux.org/mkfs.xfs.8)、
+[mkfs.btrfs(8)](https://man.voidlinux.org/mkfs.btrfs.8)或任何其他檔案
+系統的必要工具將他們格式化。
 
-[mkfs.vfat(8)](https://man.voidlinux.org/mkfs.vfat.8) is also available to
-create FAT32 partitions. However, due to restrictions associated with FAT
-filesystems, it should only be used when no other filesystem is suitable (such
-as for the EFI System Partition).
+也可以使用 [mkfs.vfat(8)](https://man.voidlinux.org/mkfs.vfat.8) 來創
+建 FAT32 分區。不過因為 FAT 檔案系統的許多缺陷，你只應該在沒有其他適合
+檔案系統的時候才使用它（像是 EFI 系統分區）。
 
-[cfdisk(8)](https://man.voidlinux.org/cfdisk.8) and
-[fdisk(8)](https://man.voidlinux.org/fdisk.8) are available on the live images
-for partitioning, but you may wish to use
-[gdisk(8)](https://man.voidlinux.org/gdisk.8) (from the package `gptfdisk`) or
-[parted(8)](https://man.voidlinux.org/parted.8) instead.
+在 live 映像上，可以使用
+[cfdisk(8)](https://man.voidlinux.org/cfdisk.8) 和
+[fdisk(8)](https://man.voidlinux.org/fdisk.8) 來進行分區。不過你可能會
+比較想用[gdisk(8)](https://man.voidlinux.org/gdisk.8)（在套件
+`gptfdisk` 中）或[parted(8)](https://man.voidlinux.org/parted.8)。
 
-For a UEFI booting system, make sure to create an EFI System Partition (ESP).
-The ESP should have the partition type "EFI System" (code `EF00`) and be
-formatted as FAT32 using [mkfs.vfat(8)](https://man.voidlinux.org/mkfs.vfat.8).
+以 UEFI 系統來說，別忘了創建一個 EFI 系統分區（ESP）。此分區應有「EFI
+System」（代碼 `EF00`）的類別，並使用
+[mkfs.vfat(8)](https://man.voidlinux.org/mkfs.vfat.8) 格式化為 FAT32。
 
-If you're unsure what partitions to create, create a 1GB partition of type "EFI
-System" (code `EF00`), then create a second partition of type "Linux Filesystem"
-(code `8300`) using the remainder of the drive.
+如果不確定要創建哪些分區，創建一個 1GB 大小，類型「EFI System」（代號
+`EF00`）的分區。接著用剩餘的硬碟空間創建第二個類型為「Linux Filesystem」
+（代號 `8300`）的分區。
 
-Format these partitions as FAT32 and ext4, respectively:
+將這兩個分區分別格式化為 FAT32 和 ext4：
 
 ```
 # mkfs.vfat /dev/sda1
 # mkfs.ext4 /dev/sda2
 ```
 
-### Create a New Root and Mount Filesystems
+### 創建新 Root 並掛載檔案系統
 
-This guide will assume the new root filesystem is mounted on `/mnt`. You may
-wish to mount it elsewhere.
+這篇指南假設你將新的 root 檔案系統掛載在 `/mnt`。你可能會想將它掛載到
+其他地方。
 
-If using UEFI, mount the EFI System Partition as `/mnt/boot/efi`.
+如果你使用 UEFI，將 EFI 系統分區掛載到 `/mnt/boot/efi`。
 
-For example, if `/dev/sda2` is to be mounted as `/` and `dev/sda1` is the EFI
-System Partition:
+舉例來說，如果要將 `/dev/sda2` 掛載為 `/`，且 `/dev/sda1` 是 EFI 系統
+分區：
 
 ```
 # mount /dev/sda2 /mnt/
@@ -72,88 +68,85 @@ System Partition:
 # mount /dev/sda1 /mnt/boot/efi/
 ```
 
-Initialize swap space, if desired, using
-[mkswap(8)](https://man.voidlinux.org/mkswap.8).
+如果想要使用 swap，使用
+[mkswap(8)](https://man.voidlinux.org/mkswap.8) 將該分區初始化。
 
-## Base Installation
+## 基本系統安裝
 
-Follow only one of the two following subsections.
+請選擇以下兩小節的其中一種方法進行安裝。
 
-If on aarch64, it will be necessary to install a kernel package in addition to
-`base-system`. For example, `linux` is a kernel package that points to the
-latest stable kernel packaged by Void.
+如果您要在 aarch64 架構上進行安裝，您除了需要安裝 `base-system` 外，還
+需要一個額外的核心套件。例如說 `linux` 是 Void 中提供最新穩定版本的核
+心套件。
 
-### The XBPS Method
+### 使用 XBPS
 
-Select a [mirror](../../xbps/repositories/mirrors/index.md) and **use the**
-[**appropriate URL**](../../xbps/repositories/index.md#the-main-repository) for
-the type of system you wish to install. For simplicity, save this URL to a shell
-variable. A glibc installation, for example, would use:
+選擇一個[鏡像站](../../xbps/repositories/mirrors/index.md)，並根據你想
+安裝的系統類型**選擇**合適的[網
+址](../../xbps/repositories/index.md#the-main-repository)。方便起見，
+將這個網址存到 shell 變數裡。以一個 glibc 安裝來說：
 
 ```
 # REPO=https://repo-default.voidlinux.org/current
 ```
 
-XBPS also needs to know what architecture is being installed. Available options
-are `x86_64`, `x86_64-musl`, `i686` for PC architecture computers and `aarch64`.
-For example:
+XBPS 還需要知道要安裝哪種架構的系統。有這些可用的選項 `x86_64`、
+`x86_64-musl`、`i686` 和 `aarch64`。同樣將您的選擇存到一個變數裡：
 
 ```
 # ARCH=x86_64
 ```
 
-This architecture must be compatible with your current operating system, but
-does not need to be the same. If your host is running an x86_64 operating
-system, any of the three architectures can be installed (whether the host is
-musl or glibc), but an i686 host can only install i686 distributions.
+您所選的架構可以不用跟您目前的作業系統架構一致，不過必須要相容。如果宿
+主機在使用 x86_64 的作業系統，則上述三種架構都可用（不論宿主是 musl 還
+是 glibc）。但是如果宿主機使用 i686 系統，則它只能用來安裝 i686 的版本。
 
-Copy the RSA keys from the installation medium to the target root directory:
+將 RSA 金鑰從安裝媒介中複製到目標的根目錄中：
 
 ```
 # mkdir -p /mnt/var/db/xbps/keys
 # cp /var/db/xbps/keys/* /mnt/var/db/xbps/keys/
 ```
 
-Use [xbps-install(1)](https://man.voidlinux.org/xbps-install.1) to bootstrap the
-installation by installing the `base-system` metapackage:
+使用 [xbps-install(1)](https://man.voidlinux.org/xbps-install.1) 安裝
+`base-system` 套件組合：
 
 ```
 # XBPS_ARCH=$ARCH xbps-install -S -r /mnt -R "$REPO" base-system
 ```
 
-### The ROOTFS Method
+### 使用 ROOTFS
 
-[Download a ROOTFS
-tarball](https://voidlinux.org/download/#download-installable-base-live-images-and-rootfs-tarballs)
-matching your architecture.
+[下載符合你要架構的 ROOTFS 壓縮
+檔
+](https://voidlinux.org/download/#download-installable-base-live-images-and-rootfs-tarballs)
 
-Unpack the tarball into the newly configured filesystems:
+將該壓縮檔解壓縮到新創建好的檔案系統中：
 
 ```
 # tar xvf void-<...>-ROOTFS.tar.xz -C /mnt
 ```
 
-## Configuration
+## 設定系統
 
-With the exception of the section "Install base-system (ROOTFS method only)",
-the remainder of this guide is common to both the XBPS and ROOTFS installation
-methods.
+除了「安裝基礎系統（限 ROOTFS 方法）」這個章節外，其他部份可適用於
+XBPS 方法和 ROOTFS 方法。
 
-### Entering the Chroot
+### 進入 Chroot
 
-[xchroot(1)](https://man.voidlinux.org/xchroot.1) (from `xtools`) can be used to
-set up and enter the chroot. Alternatively, this can be [done
-manually](../../config/containers-and-vms/chroot.md#manual-method).
+[xchroot(1)](https://man.voidlinux.org/xchroot.1)（由 `xtools` 套件提
+供）可被用來設置和進入 chroot。除此之外，你也可以自行[手動配置並進
+入](../../config/containers-and-vms/chroot.md#manual-method) chroot。
 
 ```
 # xchroot /mnt /bin/bash
 ```
 
-### Install base-system (ROOTFS method only)
+### 安裝基礎方法（限 ROOTFS 方法）
 
-ROOTFS images generally contain out of date software, due to being a snapshot of
-the time when they were built, and do not come with a complete `base-system`.
-Update the package manager and install `base-system`:
+因為 ROOTFS 映像檔是其被創建時的快照，因此其中包含的軟體通常都是過時的，
+並且，它並不包含完整的 `base-system`。更新套件管理員並安裝
+`base-system`：
 
 ```
 [xchroot /mnt] # xbps-install -Su xbps
@@ -162,151 +155,144 @@ Update the package manager and install `base-system`:
 [xchroot /mnt] # xbps-remove base-voidstrap
 ```
 
-### Installation Configuration
+### 安裝設置
 
-Specify the hostname in `/etc/hostname`. Go through the options in
-[`/etc/rc.conf`](../../config/rc-files.md#rcconf). If installing a glibc
-distribution, edit `/etc/default/libc-locales`, uncommenting desired
-[locales](../../config/locales.md).
+在 `/etc/hostname` 中設置主機名稱。並檢查看看
+[`/etc/rc.conf`](../../config/rc-files.md#rcconf) 中有沒有什麼需要設置
+的選項。如果您安裝的是 glibc 版本，編輯 `/etc/default/libc-locales`，
+並取消想要使用的 [locales](../../config/locales.md) 的註釋。
 
-[nvi(1)](https://man.voidlinux.org/nvi.1) is available in the chroot, but you
-may wish to install your preferred text editor at this time.
+[nvi(1)](https://man.voidlinux.org/nvi.1) 可以在 chroot 中使用，不過你
+也可以在此時安裝你喜歡的文字編輯器。
 
-For glibc builds, generate locale files with:
+如果你安裝 glibc 版本，使用以下指令產生語系檔案：
 
 ```
 [xchroot /mnt] # xbps-reconfigure -f glibc-locales
 ```
 
-### Set a Root Password
+### 設置 Root 密碼
 
-[Configure at least one super user account](../../config/users-and-groups.md).
-Other user accounts can be configured later, but there should either be a root
-password, or a new user account with [sudo(8)](https://man.voidlinux.org/sudo.8)
-privileges.
+[設置好至少一個超級使用者帳號](../../config/users-and-groups.md)。其他
+使用者帳號可以之後再創建，不過你必須設定 root 的密碼或創建一個可以使用
+[sudo(8)](https://man.voidlinux.org/sudo.8) 的使用者帳號。
 
-To set a root password, run:
+用以下指令來設定 root 的密碼：
 
 ```
 [xchroot /mnt] # passwd
 ```
 
-### Configure fstab
+### 設置 fstab
 
-The [fstab(5)](https://man.voidlinux.org/fstab.5) file can be automatically
-generated from currently mounted filesystems by copying the file `/proc/mounts`:
+可以透過複製 `/proc/mounts` 檔案來從目前掛載的檔案系統自動產生
+[fstab(5)](https://man.voidlinux.org/fstab.5) 檔案。
 
 ```
 [xchroot /mnt] # cp /proc/mounts /etc/fstab
 ```
 
-Remove lines in `/etc/fstab` that refer to `proc`, `sys`, `devtmpfs` and `pts`.
+將 `/etc/fstab` 中含有 `proc`、`sys`、`devtmpfs` 和 `pts` 的行刪除。
 
-Replace references to `/dev/sdXX`, `/dev/nvmeXnYpZ`, etc. with their respective
-UUID, which can be found by running
-[blkid(8)](https://man.voidlinux.org/blkid.8). Referring to filesystems by their
-UUID guarantees they will be found even if they are assigned a different name at
-a later time. In some situations, such as booting from USB, this is absolutely
-essential. In other situations, disks will always have the same name unless
-drives are physically added or removed. Therefore, this step may not be strictly
-necessary, but is almost always recommended.
+將 `/dev/sdXX`、`/dev/nvmeXnYpZ` 或其他之類的玩意用它們的 UUID 替換掉。
+UUID 可以使用 [blkid(8)](https://man.voidlinux.org/blkid.8) 取得。使用
+UUID 來代表檔案系統可以確保系統一定找得到該檔案系統，即使設備名稱有改
+變過。例如使用 USB 開機，這時使用 UUID 來代表檔案系統就是必要的。不過
+其他時候，硬碟的名稱通常不會有變化，除非物理地增加或移除硬碟。所以這個
+步驟並非必要，不過我們仍強烈建議使用 UUID 來代表檔案系統。
 
-Change the last zero of the entry for `/` to `1`, and the last zero of every
-other line to `2`. These values configure the behaviour of
-[fsck(8)](https://man.voidlinux.org/fsck.8).
+將 `/` 那行最後面的 `0` 改成 `1`，其他行最後面的 `0` 改成 `2`。這些數
+值會影響 [fsck(8)](https://man.voidlinux.org/fsck.8) 的行為。
 
-For example, the partition scheme used throughout previous examples yields the
-following `fstab`:
+舉例來說，之前的分區表會在 `fstab` 中產生如下配置：
 
 ```
 /dev/sda1       /boot/efi   vfat    rw,relatime,[...]       0 0
 /dev/sda2       /           ext4    rw,relatime             0 0
 ```
 
-The information from `blkid` results in the following `/etc/fstab`:
+使用 `blkid` 提供的 UUID 及其他上述步驟修改 `/etc/fstab` 的結果：
 
 ```
 UUID=6914[...]  /boot/efi   vfat    rw,relatime,[...]       0 2
 UUID=dc1b[...]  /           ext4    rw,relatime             0 1
 ```
 
-Note: The output of `/proc/mounts` will have a single space between each field.
-The columns are aligned here for readability.
+注意：`/proc/mounts` 的結果會在每個欄位中間有個空格，在此我們將每欄對
+齊以便閱讀。
 
-Add an entry to mount `/tmp` in RAM:
+加入 `/tmp`：
 
 ```
 tmpfs           /tmp        tmpfs   defaults,nosuid,nodev   0 0
 ```
 
-If using swap space, add an entry for any swap partitions:
+如果你有使用 swap，為它加入一行：
 
 ```
 UUID=1cb4[...]  swap        swap    rw,noatime,discard      0 0
 ```
 
-## Installing GRUB
+## 安裝 GRUB
 
-Use
+使用
 [grub-install](https://www.gnu.org/software/grub/manual/grub/html_node/Installing-GRUB-using-grub_002dinstall.html)
-to install GRUB onto your boot disk.
+來將 GRUB 安裝到你的開機碟上。
 
-**On a BIOS computer**, install the package `grub`, then run `grub-install
-/dev/sdX`, where `/dev/sdX` is the drive (not partition) that you wish to
-install GRUB to. For example:
+**在 BIOS 電腦上**，安裝 `grub` 套件，並執行 `grub-install /dev/sdX`，
+`/dev/sdX` 代表你想要安裝 GRUB 的硬碟（不是分區）。例如：
 
 ```
 [xchroot /mnt] # xbps-install grub
 [xchroot /mnt] # grub-install /dev/sda
 ```
 
-**On a UEFI computer**, install either `grub-x86_64-efi`, `grub-i386-efi` or
-`grub-arm64-efi`, depending on your architecture, then run `grub-install`,
-optionally specifying a bootloader label (this label may be used by your
-computer's firmware when manually selecting a boot device):
+**在 UEFI 電腦上**，根據你的電腦架構，安裝 `grub-x86_64-efi`、
+`grub-i386-efi` 或 `grub-arm64-efi`。接著執行 `grub-install`，並可以指
+定一個引導程式標籤（這個標籤可能會在你選擇開機裝置時出現）。
 
 ```
 [xchroot /mnt] # xbps-install grub-x86_64-efi
 [xchroot /mnt] # grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id="Void"
 ```
 
-### Troubleshooting GRUB installation
+### 安裝 GRUB 時常見問題
 
-If EFI variables are not available, add the option `--no-nvram` to the
-`grub-install` command.
+如果 EFI 變數無法使用，在使用 `grub-install` 指令的時候加上
+`--no-nvram` 參數。
 
-#### Installing on removable media or non-compliant UEFI systems
+#### 安裝到可移除的媒介或不相容的 UEFI 系統
 
-Unfortunately, not all systems have a fully standards compliant UEFI
-implementation. In some cases, it is necessary to "trick" the firmware into
-booting by using the default fallback location for the bootloader instead of a
-custom one. In that case, or if installing onto a removable disk (such as USB),
-add the option `--removable` to the `grub-install` command.
+並非所有系統都有標準、完整的 UEFI 實現。某些時候，我們需要「騙」韌體以
+預設備用的地址啟動引導程式。如果是在這樣的情況下，或你想安裝到一個可移
+除的硬碟中（像是一個 USB 隨身碟），在執行 `grub-install` 的時候加上
+`--removable` 參數。
 
-Alternatively, use [mkdir(1)](https://man.voidlinux.org/mkdir.1) to create the
-`/boot/efi/EFI/boot` directory and copy the installed GRUB executable, usually
-located in `/boot/efi/EFI/Void/grubx64.efi` (its location can be found using
-[efibootmgr(8)](https://man.voidlinux.org/efibootmgr.8)), into the new folder:
+你也可以使用 [mkdir(1)](https://man.voidlinux.org/mkdir.1) 來建立
+`/boot/efi/EFI/boot` 目錄，並將已經安裝好的 GRUB 可執行檔（通常會在
+`/boot/efi/EFI/Void/grubx64.efi`，你可以使用
+[efibootmgr(8)](https://man.voidlinux.org/efibootmgr.8) 來找它的位置）
+複製進去：
 
 ```
 [xchroot /mnt] # mkdir -p /boot/efi/EFI/boot
 [xchroot /mnt] # cp /boot/efi/EFI/Void/grubx64.efi /boot/efi/EFI/boot/bootx64.efi
 ```
 
-## Finalization
+## 最後的最後
 
-Use [xbps-reconfigure(1)](https://man.voidlinux.org/xbps-reconfigure.1) to
-ensure all installed packages are configured properly:
+使用
+[xbps-reconfigure(1)](https://man.voidlinux.org/xbps-reconfigure.1) 來
+確保所有安裝的套件都已被正確的設置：
 
 ```
 [xchroot /mnt] # xbps-reconfigure -fa
 ```
 
-This will make [dracut(8)](https://man.voidlinux.org/dracut.8) generate an
-initramfs, and will make GRUB generate a working configuration.
+這會使 [dracut(8)](https://man.voidlinux.org/dracut.8) 產生 initramfs，
+並讓 GRUB 產生一個正確的設置檔。
 
-At this point, the installation is complete. Exit the chroot and reboot your
-computer:
+現在，你已經完成安裝了，離開 chroot，並重新開機：
 
 ```
 [xchroot /mnt] # exit
@@ -314,5 +300,5 @@ computer:
 # shutdown -r now
 ```
 
-After booting into your Void installation for the first time, [perform a system
-update](../../xbps/index.md#updating).
+在重新開機進到你的 Void 安裝後，[更新你的系
+統](../../xbps/index.md#updating)。
