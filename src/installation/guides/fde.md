@@ -1,15 +1,13 @@
-# Full Disk Encryption
+# 全磁碟加密
 
-**Warning**: Your drive's block device and other information may be different,
-so make sure it is correct.
+**警告**：你的儲存裝置資訊可能會有所不同，所以請自行確認你有沒有用對裝置。
 
-## Partitioning
+## 分區
 
-Boot a live image and login.
+進入 live 映像並登入。
 
-Create a single physical partition on the disk using
-[cfdisk](https://man.voidlinux.org/cfdisk), marking it as bootable. For an MBR
-system, the partition layout should look like the following.
+使用 [cfdisk](https://man.voidlinux.org/cfdisk) 在磁碟上建立一個物理分區，並將它
+標示為可用於開機的（bootable）。對一個 MBR 系統來說，分區應該要長得類似下面這樣。
 
 ```
 # fdisk -l /dev/sda
@@ -24,10 +22,9 @@ Device     Boot Start       End   Sectors Size Id Type
 /dev/sda1  *     2048 100663295 100661248  48G 83 Linux
 ```
 
-UEFI systems will need the disk to have a GPT disklabel and an EFI system
-partition. The required size for this may vary depending on needs, but 100M
-should be enough for most cases. For an EFI system, the partition layout should
-look like the following.
+UEFI 系統需要該磁碟有 GPT 標籤和一個 EFI 系統分區。EFI 系統分區的大小取決於你的
+需求，不過多數時候來說，100M 就夠用了。對一個 UEFI 系統來說，分區會長得類似於下
+面這樣。
 
 ```
 # fdisk -l /dev/sda
@@ -43,21 +40,20 @@ Device      Start       End   Sectors  Size Type
 /dev/sda2  264192 100663262 100399071 47.9G Linux filesystem
 ```
 
-## Encrypted volume configuration
+## 加密磁區的設置
 
-[Cryptsetup](https://man.voidlinux.org/cryptsetup.8) defaults to LUKS2, yet GRUB
-releases before 2.06 only had support for LUKS1.
 
-LUKS2 is only partially supported by GRUB; specifically, only the PBKDF2 key
-derivation function is
-[implemented](https://git.savannah.gnu.org/cgit/grub.git/commit/?id=365e0cc3e7e44151c14dd29514c2f870b49f9755),
-which is *not* the default KDF used with LUKS2, that being Argon2i ([GRUB Bug
-59409](https://savannah.gnu.org/bugs/?59409)). LUKS encrypted partitions using
-Argon2i (as well as the other KDF) can *not* be decrypted. For that reason, this
-guide only recommends LUKS1 be used.
+[Cryptsetup](https://man.voidlinux.org/cryptsetup.8) 預設使用 LUKS2，不過 GRUB
+2.06 版之前只有支援 LUKS1。
 
-Keep in mind the encrypted volume will be `/dev/sda2` on EFI systems, since
-`/dev/sda1` is taken up by the EFI partition.
+GRUH 只部份支援 LUKS2，更確切地來說，只
+[支援](https://git.savannah.gnu.org/cgit/grub.git/commit/?id=365e0cc3e7e44151c14dd29514c2f870b49f9755)
+PBKDF2 金鑰衍生函數，而 LUKS2 預設使用的是 Argon2i，而非 PBKDF2。
+([GRUB Bug 59409](https://savannah.gnu.org/bugs/?59409))
+在此情況下，使用 Argon2i（或其他 KDF）所加密的分區會 *無法* 被解密。因此，本指南
+只推薦使用 LUKS1。
+
+如果你使用 UEFI 系統，在下面這裡，你需要輸入的是 `/dev/sda2` 而非 `/dev/sda1`。
 
 ```
 # cryptsetup luksFormat --type luks1 /dev/sda1
@@ -71,26 +67,25 @@ Enter passphrase:
 Verify passphrase:
 ```
 
-Once the volume is created, it needs to be opened. Replace `voidvm` with an
-appropriate name. Again, this will be `/dev/sda2` on EFI systems.
+建立好後，我們需要開啟它。請自行使用合適的名字替換 `voidvm`。再次提醒，如果你在
+UEFI 系統上，你在這裡需要輸入的是 `/dev/sda2`。
 
 ```
 # cryptsetup luksOpen /dev/sda1 voidvm
 Enter passphrase for /dev/sda1:
 ```
 
-Once the LUKS container is opened, create the LVM volume group using that
-partition.
+開啟完 LUKS 容器後，使用該分區建立一個 LVM 磁區組。
 
 ```
 # vgcreate voidvm /dev/mapper/voidvm
   Volume group "voidvm" successfully created
 ```
 
-There should now be an empty volume group named `voidvm`.
+現在應該就有個名為 `voidvm`（或你剛取的任何名字）的空磁區組。
 
-Next, logical volumes need to be created for the volume group. For this example,
-I chose 10G for `/`, 2G for `swap`, and will assign the rest to `/home`.
+接下來，我們需要為這個磁區組建立一些邏輯分區。此處以 `/` 10G、`swap` 2G 並將剩餘
+的分給 `/home` 為例，您可以自身需求進行調整。
 
 ```
 # lvcreate --name root -L 10G voidvm
@@ -101,10 +96,10 @@ I chose 10G for `/`, 2G for `swap`, and will assign the rest to `/home`.
   Logical volume "home" created.
 ```
 
-Next, create the filesystems. The example below uses XFS as a personal
-preference of the author. Any filesystem [supported by
-GRUB](https://www.gnu.org/software/grub/manual/grub/grub.html#Features) will
-work.
+接著這些分區建立檔案系統，此處以原文作者喜好使用 XFS 為例，您可依喜好自行選用任
+何
+[GRUB 所支援的檔案系統](https://www.gnu.org/software/grub/manual/grub/grub.html#Features)
+使用。
 
 ```
 # mkfs.xfs -L root /dev/voidvm/root
@@ -117,9 +112,9 @@ meta-data=/dev/voidvm/home       isize=512    agcount=4, agsize=2359040 blks
 Setting up swapspace version 1, size = 2 GiB (2147479552 bytes)
 ```
 
-## System installation
+## 安裝系統
 
-Next, setup the chroot and install the base system.
+接著，我們設定好 chroot，並安裝好基本的系統。
 
 ```
 # mount /dev/voidvm/root /mnt
@@ -127,7 +122,7 @@ Next, setup the chroot and install the base system.
 # mount /dev/voidvm/home /mnt/home
 ```
 
-On a UEFI system, the EFI system partition also needs to be mounted.
+在 UEFI 系統上，EFI 系統分區也需要掛載。
 
 ```
 # mkfs.vfat /dev/sda1
@@ -135,17 +130,15 @@ On a UEFI system, the EFI system partition also needs to be mounted.
 # mount /dev/sda1 /mnt/boot/efi
 ```
 
-Copy the RSA keys from the installation medium to the target root directory:
+將 RSA 金鑰從安裝媒介複製到安裝目標的根目錄：
 
 ```
 # mkdir -p /mnt/var/db/xbps/keys
 # cp /var/db/xbps/keys/* /mnt/var/db/xbps/keys/
 ```
 
-Before we enter the chroot to finish up configuration, we do the actual install.
-Do not forget to use the [appropriate repository
-URL](../../xbps/repositories/index.md#the-main-repository) for the type of
-system you wish to install.
+在我們 chroot 前，別忘了要安裝系統。確保你有使用
+[合適的鏡像下載點](../../xbps/repositories/index.md#the-main-repository)
 
 ```
 # xbps-install -Sy -R https://repo-default.voidlinux.org/current -r /mnt base-system lvm2 cryptsetup grub
@@ -155,17 +148,16 @@ x86_64-repodata: 1661KB [avg rate: 2257KB/s]
 ...
 ```
 
-UEFI systems will have a slightly different package selection. The installation
-command for a UEFI system will be as follows.
+在 UEFI 系統上要安裝的包會有點不同，具體安裝指令如下。
 
 ```
 # xbps-install -Sy -R https://repo-default.voidlinux.org/current -r /mnt base-system cryptsetup grub-x86_64-efi lvm2
 ```
 
-When it's done, we can enter the chroot with
-[`xchroot(1)`](https://man.voidlinux.org/xchroot.1) (from `xtools`) and finish
-up the configuration. Alternatively, entering the chroot can be [done
-manually](../../config/containers-and-vms/chroot.md#manual-method).
+待安裝完好，我們可以使用 `xtools` 中的
+[`xchroot(1)`](https://man.voidlinux.org/xchroot.1)
+chroot 進系統，並將剩餘所需的設定做好。你也可以
+[手動 chroot](../../config/containers-and-vms/chroot.md#manual-method)。
 
 ```
 # xchroot /mnt
@@ -175,7 +167,7 @@ manually](../../config/containers-and-vms/chroot.md#manual-method).
 [xchroot /mnt] # echo voidvm > /etc/hostname
 ```
 
-and, for glibc systems only:
+只有使用 glibc 的系統需要下面這步：
 
 ```
 [xchroot /mnt] # echo "LANG=en_US.UTF-8" > /etc/locale.conf
@@ -183,10 +175,10 @@ and, for glibc systems only:
 [xchroot /mnt] # xbps-reconfigure -f glibc-locales
 ```
 
-### Filesystem configuration
+### 設定檔案系統
 
-The next step is editing `/etc/fstab`, which will depend on how you configured
-and named your filesystems. For this example, the file should look like this:
+下一步是編輯 `/etc/fstab`，詳細步驟會取決於你怎麼設定和命名你的檔案系統。以本教
+學來說，此檔案會長得像下面這樣：
 
 ```
 # <file system>   <dir> <type>  <options>             <dump>  <pass>
@@ -196,39 +188,37 @@ tmpfs             /tmp  tmpfs   defaults,nosuid,nodev 0       0
 /dev/voidvm/swap  swap  swap    defaults              0       0
 ```
 
-UEFI systems will also have an entry for the EFI system partition.
+在 UEFI 上，EFI 系統分區也會有一行資料。
 
 ```
 /dev/sda1	/boot/efi	vfat	defaults	0	0
 ```
 
-### GRUB configuration
+### 設定 GRUB
 
-Next, configure GRUB to be able to unlock the filesystem. Add the following line
-to `/etc/default/grub`:
+然後我們需要讓 GRUB 能解鎖我們的檔案系統。在 `/etc/default/grub` 中加入以下的內
+容：
 
 ```
 GRUB_ENABLE_CRYPTODISK=y
 ```
 
-Next, the kernel needs to be configured to find the encrypted device. First,
-find the UUID of the device.
+我們還需要設定核心，讓它能找到加密裝置。首先要找到硬碟的 UUID。
 
 ```
 [xchroot /mnt] # blkid -o value -s UUID /dev/sda1
 135f3c06-26a0-437f-a05e-287b036440a4
 ```
 
-Edit the `GRUB_CMDLINE_LINUX_DEFAULT=` line in `/etc/default/grub` and add
-`rd.lvm.vg=voidvm rd.luks.uuid=<UUID>` to it. Make sure the UUID matches the one
-for the `sda1` device found in the output of the
-[blkid(8)](https://man.voidlinux.org/blkid.8) command above.
+找到後在 `/etc/default/grub` 中 `GRUB_CMDLINE_LINUX_DEFAULT=` 這行加上
+`rd.lvm.vg=voidvm rd.luks.uuid=<UUID>`，並確定這個 UUID 跟你 `/dev/sda1` 裝置的
+UUID 一樣（如上面的例子，使用 [blkid(8)](https://man.voidlinux.org/blkid.8) 來尋
+找）。
 
-## LUKS key setup
+## LUKS 金鑰設定
 
-And now to avoid having to enter the password twice on boot, a key will be
-configured to automatically unlock the encrypted volume on boot. First, generate
-a random key.
+為了省去在開機時輸入兩次密碼的麻煩，我們可以設定一個金鑰讓加密的裝置在開機時自動
+解鎖。先產生一個隨機金鑰。
 
 ```
 [xchroot /mnt] # dd bs=1 count=64 if=/dev/urandom of=/boot/volume.key
@@ -237,49 +227,49 @@ a random key.
 64 bytes copied, 0.000662757 s, 96.6 kB/s
 ```
 
-Next, add the key to the encrypted volume.
+並將該金鑰加到加密分區中。
 
 ```
 [xchroot /mnt] # cryptsetup luksAddKey /dev/sda1 /boot/volume.key
 Enter any existing passphrase:
 ```
 
-Change the permissions to protect the generated key.
+變更檔案權限來保護金鑰。
 
 ```
 [xchroot /mnt] # chmod 000 /boot/volume.key
 [xchroot /mnt] # chmod -R g-rwx,o-rwx /boot
 ```
 
-This keyfile also needs to be added to `/etc/crypttab`. Again, this will be
-`/dev/sda2` on EFI systems.
+我們需要將這個金鑰檔案加到 `/etc/crypttab` 中。以下例子在 UEFI 系統中會是
+`/dev/sda2`。
 
 ```
 voidvm   /dev/sda1   /boot/volume.key   luks
 ```
 
-And then the keyfile and `crypttab` need to be included in the initramfs. Create
-a new file at `/etc/dracut.conf.d/10-crypt.conf` with the following line:
+同時金鑰檔和 `crypttab` 需要被加到 initramfs 中。創建
+`/etc/dracut.conf.d/10-crypt.conf` 並輸入以下內容：
 
 ```
 install_items+=" /boot/volume.key /etc/crypttab "
 ```
 
-## Complete system installation
+## 完成系統安裝
 
-Next, install the boot loader to the disk.
+安裝導引程式。
 
 ```
 [xchroot /mnt] # grub-install /dev/sda
 ```
 
-Ensure an initramfs is generated:
+確定 initramfs 有正常產生：
 
 ```
 [xchroot /mnt] # xbps-reconfigure -fa
 ```
 
-Exit the `chroot`, unmount the filesystems, and reboot the system.
+離開 chroot，卸載檔案系統，然後重開機。
 
 ```
 [xchroot /mnt] # exit
