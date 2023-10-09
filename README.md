@@ -1,5 +1,7 @@
 # Void 手冊
 
+**本翻譯僅供參考，如對翻譯的內容有疑義，請自行參閱原文。我不會為翻譯內容錯誤所造成的損失負責。**
+
 歡迎來到 Void Linux 的手冊。這個 Repo 存放了
 <https://docs.voidlinux.org/> 手冊的繁體中文版。如果想為這個 Repo 出一
 份心力，請參考 [CONTRIBUTING](./CONTRIBUTING.md) 。
